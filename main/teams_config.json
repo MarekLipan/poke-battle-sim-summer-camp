@@ -1,0 +1,54 @@
+[
+  {
+    "trainer": "Trainer 1",
+    "pokemon": [
+      {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 10},
+      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 0},
+      {"name": "Charmander / Charmeleon / Charizard", "stage": 1, "level": 0},
+      {"name": "Gastly / Haunter / Gengar", "stage": 2, "level": 25},
+      {"name": "Geodude / Graveler / Golem", "stage": 1, "level": 12},
+      {"name": "Machop / Machoke / Machamp", "stage": 2, "level": 8},
+      {"name": "Pikachu / Raichu", "stage": 1, "level": 20},
+      {"name": "Squirtle / Wartortle / Blastoise", "stage": 1, "level": 0}
+    ]
+  },
+  {
+    "trainer": "Trainer 2",
+    "pokemon": [
+      {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 0},
+      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 12},
+      {"name": "Charmander / Charmeleon / Charizard", "stage": 1, "level": 10},
+      {"name": "Gastly / Haunter / Gengar", "stage": 2, "level": 15},
+      {"name": "Geodude / Graveler / Golem", "stage": 1, "level": 0},
+      {"name": "Machop / Machoke / Machamp", "stage": 3, "level": 40},
+      {"name": "Pikachu / Raichu", "stage": 1, "level": 10},
+      {"name": "Squirtle / Wartortle / Blastoise", "stage": 1, "level": 0}
+    ]
+  },
+  {
+    "trainer": "Trainer 3",
+    "pokemon": [
+      {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 13},
+      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 11},
+      {"name": "Charmander / Charmeleon / Charizard", "stage": 1, "level": 0},
+      {"name": "Gastly / Haunter / Gengar", "stage": 1, "level": 0},
+      {"name": "Geodude / Graveler / Golem", "stage": 2, "level": 20},
+      {"name": "Machop / Machoke / Machamp", "stage": 1, "level": 15},
+      {"name": "Pikachu / Raichu", "stage": 1, "level": 0},
+      {"name": "Squirtle / Wartortle / Blastoise", "stage": 1, "level": 0}
+    ]
+  },
+  {
+    "trainer": "Trainer 4",
+    "pokemon": [
+      {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 15},
+      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 0},
+      {"name": "Charmander / Charmeleon / Charizard", "stage": 1, "level": 0},
+      {"name": "Gastly / Haunter / Gengar", "stage": 2, "level": 20},
+      {"name": "Geodude / Graveler / Golem", "stage": 1, "level": 15},
+      {"name": "Machop / Machoke / Machamp", "stage": 2, "level": 20},
+      {"name": "Pikachu / Raichu", "stage": 1, "level": 15},
+      {"name": "Squirtle / Wartortle / Blastoise", "stage": 3, "level": 12}
+    ]
+  }
+]

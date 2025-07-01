@@ -1,0 +1,8 @@
+[project]
+name = "poke-battle-sim-summer-camp"
+version = "0.1.0"
+description = "App designed for simulating poke battles in between 4 groups at summer camp."
+requires-python = ">=3.8"
+dependencies = [
+    "poke-battle-sim>=0.1.7",
+]

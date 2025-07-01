@@ -1,0 +1,27 @@
+version = 1
+revision = 2
+requires-python = ">=3.8"
+resolution-markers = [
+    "python_full_version >= '3.9'",
+    "python_full_version < '3.9'",
+]
+
+[[package]]
+name = "poke-battle-sim"
+version = "0.1.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/93/06/a0bf4302ada0af2fe864bfd4e10d9bc4281a6155760925da17178492aa6c/poke-battle-sim-0.1.7.tar.gz", hash = "sha256:116f28dd0493648fcbd80aeb0af958edc51861208c647961456aa1a4debe4d32", size = 71845, upload-time = "2022-09-30T05:57:36.873Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3e/aa/d6f54b1e4a0cad172b35df0e81c18d93f6a550282c2d51c0c2af82be135d/poke_battle_sim-0.1.7-py3-none-any.whl", hash = "sha256:309b0b1d576bd308a41aaa55a51c176810d6b5237a6ca7d125166f0f7ff943dd", size = 76398, upload-time = "2022-09-30T05:57:35.133Z" },
+]
+
+[[package]]
+name = "poke-battle-sim-summer-camp"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "poke-battle-sim" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "poke-battle-sim", specifier = ">=0.1.7" }]
