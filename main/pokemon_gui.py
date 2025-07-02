@@ -18,6 +18,7 @@ from PyQt5.QtCore import Qt
 import sys
 import os
 import json
+import poke_battle_sim as pb
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import battle_simulator
@@ -32,6 +33,8 @@ with open(STAGES_PATH, "r", encoding="utf-8") as f:
 
 TEAM_SIZE = len(TEAMS_CONFIG[0]["pokemon"])
 NUM_TEAMS = len(TEAMS_CONFIG)
+
+HP_BOOST = 10  # Set the HP boost factor here
 
 
 class PokemonWrapper:
@@ -50,7 +53,16 @@ class PokemonWrapper:
             )
             self.gender = stage_info.get("gender", "male")
             self.level = level
-            self.max_hp = 100 * 10  # Arbitrary default, can be adjusted
+            poke = pb.Pokemon(
+                self.name,
+                self.level,
+                [self.move],
+                self.gender,
+                ivs=[15, 15, 15, 15, 15, 15],
+                evs=[0, 0, 0, 0, 0, 0],
+                nature="hardy",
+            )
+            self.max_hp = poke.max_hp * HP_BOOST
             self.cur_hp = self.max_hp
         else:
             self.max_hp = 0
@@ -134,31 +146,48 @@ class TeamBattleManager:
     def do_battle_turn(self):
         t1 = self.team_a.get_active()
         t2 = self.team_b.get_active()
-        # Use simulate_battle from battle_simulator
-        result = battle_simulator.simulate_battle(
-            poke_a_id=t1.name,
-            poke_b_id=t2.name,
-            poke_a_moves=[t1.move],
-            poke_b_moves=[t2.move],
-            poke_a_gender=t1.gender,
-            poke_b_gender=t2.gender,
-            poke_a_level=t1.level,
-            poke_b_level=t2.level,
-            poke_a_cur_hp=t1.cur_hp,
-            poke_b_cur_hp=t2.cur_hp,
-            hp_boost=1,  # Already boosted in wrapper
-            verbose=False,
+        # Simulate the battle multiple times and average the winner's HP
+        NUM_SIMULATIONS = 100
+        win_hp = []
+        winner = None
+        for _ in range(NUM_SIMULATIONS):
+            result = battle_simulator.simulate_battle(
+                poke_a_id=t1.name,
+                poke_b_id=t2.name,
+                poke_a_moves=[t1.move],
+                poke_b_moves=[t2.move],
+                poke_a_gender=t1.gender,
+                poke_b_gender=t2.gender,
+                poke_a_level=t1.level,
+                poke_b_level=t2.level,
+                poke_a_cur_hp=t1.cur_hp,
+                poke_b_cur_hp=t2.cur_hp,
+                hp_boost=HP_BOOST,
+                verbose=False,
+            )
+            win_hp.append((result["winner"], result["winner_hp"]))
+        # Determine most frequent winner
+        from collections import Counter
+
+        win_counts = Counter(w for w, _ in win_hp)
+        if win_counts["A"] >= win_counts["B"]:
+            winner = "A"
+        else:
+            winner = "B"
+        avg_hp = (
+            int(round(sum(hp for w, hp in win_hp if w == winner) / win_counts[winner]))
+            if win_counts[winner]
+            else 0
         )
-        # Update HPs based on result
-        if result["winner"] == "A":
-            t1.cur_hp = result["winner_hp"]
+        # Update HPs based on average result
+        if winner == "A":
+            t1.cur_hp = avg_hp
             t2.cur_hp = 0
         else:
             t1.cur_hp = 0
-            t2.cur_hp = result["winner_hp"]
-        self.battle_log.extend(result["battle_log"])
+            t2.cur_hp = avg_hp
         self.battle_log.append(
-            f"Battle result: {t1.name} HP: {t1.cur_hp}, {t2.name} HP: {t2.cur_hp}"
+            f"Simulated {NUM_SIMULATIONS} battles. Winner: {'A' if winner == 'A' else 'B'} (avg HP: {avg_hp})"
         )
 
     def is_battle_over(self):
@@ -241,6 +270,7 @@ class MainWindow(QMainWindow):
 
         # Team rosters
         self.team_layouts = []
+        self.team_containers = []
         for i in range(NUM_TEAMS):
             team_container = QWidget()
             team_v_layout = QVBoxLayout()
@@ -257,6 +287,7 @@ class MainWindow(QMainWindow):
 
             team_layout.addWidget(team_container)
             self.team_layouts.append({"name": trainer_name, "grid": roster_grid_layout})
+            self.team_containers.append(team_container)
 
         # Battle log
         self.battle_log = QTextEdit()
@@ -310,17 +341,21 @@ class MainWindow(QMainWindow):
         def hp_color(cur, max_):
             ratio = cur / max_ if max_ else 0
             if ratio > 0.5:
-                # Green
                 return "QProgressBar::chunk {background-color: #4caf50;}"
             elif ratio > 0.2:
-                # Yellow/Orange
                 return "QProgressBar::chunk {background-color: #ffb300;}"
             else:
-                # Red
                 return "QProgressBar::chunk {background-color: #e53935;}"
 
         self.poke1_hp.setStyleSheet(hp_color(poke1.cur_hp, poke1.max_hp))
         self.poke2_hp.setStyleSheet(hp_color(poke2.cur_hp, poke2.max_hp))
+
+        # Show only the two currently fighting trainers' teams
+        for i, container in enumerate(self.team_containers):
+            if i == self.manager.team_a_idx or i == self.manager.team_b_idx:
+                container.show()
+            else:
+                container.hide()
 
         for i, team in enumerate(self.manager.teams):
             # Clear previous widgets from grid
@@ -433,9 +468,137 @@ class SubstitutionDialog(QDialog):
         self.accept()
 
 
+class TournamentWindow(QMainWindow):
+    def __init__(self, teams_config, pokemon_stages):
+        super().__init__()
+        self.setWindowTitle("Pokémon Tournament")
+        self.teams_config = teams_config
+        self.pokemon_stages = pokemon_stages
+        self.trainers = [team["trainer"] for team in teams_config]
+        self.scores = {trainer: 0 for trainer in self.trainers}
+        self.battle_pairs = self._generate_battle_pairs()
+        self.current_battle_idx = 0
+        self.battle_windows = []
+        self.init_ui()
+        self.update_ui()
+
+    def _generate_battle_pairs(self):
+        pairs = []
+        n = len(self.trainers)
+        for i in range(n):
+            for j in range(i + 1, n):
+                pairs.append((i, j))
+        return pairs
+
+    def init_ui(self):
+        main_layout = QVBoxLayout()
+        self.score_labels = []
+        score_layout = QHBoxLayout()
+        for trainer in self.trainers:
+            vbox = QVBoxLayout()
+            name_label = QLabel(trainer)
+            name_label.setAlignment(Qt.AlignCenter)
+            score_label = QLabel("Score: 0")
+            score_label.setAlignment(Qt.AlignCenter)
+            self.score_labels.append(score_label)
+            vbox.addWidget(name_label)
+            vbox.addWidget(score_label)
+            # Team roster
+            team = next(t for t in self.teams_config if t["trainer"] == trainer)
+            grid = QGridLayout()
+            for idx, poke in enumerate(team["pokemon"]):
+                poke_name = self.pokemon_stages[poke["name"]][str(poke["stage"])]
+                icon = QLabel()
+                pixmap = QPixmap(
+                    os.path.join(os.path.dirname(__file__), poke_name["img"])
+                )
+                icon.setPixmap(pixmap.scaled(40, 40, Qt.KeepAspectRatio))
+                poke_label = QLabel(f"Lv.{poke['level']} {poke_name['name']}")
+                poke_label.setAlignment(Qt.AlignCenter)
+                poke_widget = QVBoxLayout()
+                poke_widget.addWidget(icon)
+                poke_widget.addWidget(poke_label)
+                grid.addLayout(poke_widget, idx // 3, idx % 3)
+            vbox.addLayout(grid)
+            score_layout.addLayout(vbox)
+        main_layout.addLayout(score_layout)
+        # Next battle button
+        self.next_battle_btn = QPushButton("Start Next Battle")
+        self.next_battle_btn.clicked.connect(self.start_next_battle)
+        main_layout.addWidget(self.next_battle_btn)
+        self.status_label = QLabel()
+        self.status_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(self.status_label)
+        central = QWidget()
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
+    def update_ui(self):
+        for i, trainer in enumerate(self.trainers):
+            self.score_labels[i].setText(f"Score: {self.scores[trainer]}")
+        if self.current_battle_idx < len(self.battle_pairs):
+            a, b = self.battle_pairs[self.current_battle_idx]
+            self.status_label.setText(f"Next: {self.trainers[a]} vs {self.trainers[b]}")
+            self.next_battle_btn.setEnabled(True)
+        else:
+            self.status_label.setText("Tournament finished!")
+            self.next_battle_btn.setEnabled(False)
+
+    def start_next_battle(self):
+        if self.current_battle_idx >= len(self.battle_pairs):
+            return
+        a_idx, b_idx = self.battle_pairs[self.current_battle_idx]
+        # Create a new TeamBattleManager for this battle
+        teams = [self.teams_config[a_idx], self.teams_config[b_idx]]
+        # Patch global config for TeamBattleManager
+        global TEAMS_CONFIG
+        TEAMS_CONFIG = teams
+        battle_manager = TeamBattleManager()
+        battle_window = MainWindow(battle_manager)
+        battle_window.setWindowTitle(
+            f"Battle: {self.trainers[a_idx]} vs {self.trainers[b_idx]}"
+        )
+        battle_window.show()
+        self.battle_windows.append(battle_window)
+
+        # Connect to battle end
+        def on_battle_end():
+            # Determine winner
+            team_a_alive = any(
+                pw.is_alive() for pw in battle_manager.team_a.pokemon_wrappers
+            )
+            team_b_alive = any(
+                pw.is_alive() for pw in battle_manager.team_b.pokemon_wrappers
+            )
+            if team_a_alive and not team_b_alive:
+                self.scores[self.trainers[a_idx]] += 1
+            elif team_b_alive and not team_a_alive:
+                self.scores[self.trainers[b_idx]] += 1
+            # Close battle window and update
+            battle_window.close()
+            self.current_battle_idx += 1
+            self.update_ui()
+
+        # Patch MainWindow to call on_battle_end when battle is over
+        orig_next_turn = battle_window.next_turn
+
+        def patched_next_turn():
+            orig_next_turn()
+            if (
+                not battle_manager.team_a.has_alive()
+                or not battle_manager.team_b.has_alive()
+            ):
+                on_battle_end()
+
+        battle_window.next_turn = patched_next_turn
+        battle_window.next_turn_btn.clicked.disconnect()
+        battle_window.next_turn_btn.clicked.connect(battle_window.next_turn)
+        self.update_ui()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    manager = TeamBattleManager()
-    window = MainWindow(manager)
+    # Tournament main window
+    window = TournamentWindow(TEAMS_CONFIG, POKEMON_STAGES)
     window.show()
     sys.exit(app.exec_())

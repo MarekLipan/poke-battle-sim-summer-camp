@@ -19,8 +19,8 @@
     "2": {"name": "Raichu", "img": "images/raichu.jpg", "gender": "male", "move": "thunderbolt"}
   },
   "Abra / Kadabra / Alakazam": {
-    "1": {"name": "Abra", "img": "images/abra.jpg", "gender": "male", "move": "psychic"},
-    "2": {"name": "Kadabra", "img": "images/kadabra.jpg", "gender": "male", "move": "psychic"},
+    "1": {"name": "Abra", "img": "images/abra.jpg", "gender": "male", "move": "confusion"},
+    "2": {"name": "Kadabra", "img": "images/kadabra.jpg", "gender": "male", "move": "psybeam"},
     "3": {"name": "Alakazam", "img": "images/alakazam.jpg", "gender": "male", "move": "psychic"}
   },
   "Machop / Machoke / Machamp": {
