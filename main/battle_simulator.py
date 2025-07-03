@@ -179,14 +179,19 @@ def deterministic_battle(
     # Calculate scores
     a_type_mult = get_type_multiplier(poke_a_type, poke_b_type)
     b_type_mult = get_type_multiplier(poke_b_type, poke_a_type)
-    # Make type advantage more pronounced by increasing its weight
-    TYPE_WEIGHT = 60  # was 20
-    STAGE_WEIGHT = 14  # was 10, slightly boost evolution effect
+    TYPE_WEIGHT = 60
+    STAGE_WEIGHT = 14
     a_score = (
-        poke_a_level * 2 + poke_a_cur_hp * 1.5 + a_type_mult * TYPE_WEIGHT + poke_a_stage * STAGE_WEIGHT
+        poke_a_level * 2
+        + poke_a_cur_hp * 1.5
+        + a_type_mult * TYPE_WEIGHT
+        + poke_a_stage * STAGE_WEIGHT
     )
     b_score = (
-        poke_b_level * 2 + poke_b_cur_hp * 1.5 + b_type_mult * TYPE_WEIGHT + poke_b_stage * STAGE_WEIGHT
+        poke_b_level * 2
+        + poke_b_cur_hp * 1.5
+        + b_type_mult * TYPE_WEIGHT
+        + poke_b_stage * STAGE_WEIGHT
     )
     battle_log = []
     if verbose:
@@ -194,11 +199,30 @@ def deterministic_battle(
             f"{poke_a_id} (Lv {poke_a_level}, HP {poke_a_cur_hp}, Type {poke_a_type}, Stage {poke_a_stage}) vs {poke_b_id} (Lv {poke_b_level}, HP {poke_b_cur_hp}, Type {poke_b_type}, Stage {poke_b_stage})"
         )
         battle_log.append(f"A score: {a_score:.1f}, B score: {b_score:.1f}")
-    if a_score > b_score:
+    # If scores are exactly equal, randomly pick a winner with 1 HP
+    import random
+
+    if abs(a_score - b_score) < 1e-6:
+        if random.choice([True, False]):
+            winner = "A"
+            winner_name = poke_a_id
+            loser_name = poke_b_id
+            winner_hp = 1
+            loser_hp = 0
+        else:
+            winner = "B"
+            winner_name = poke_b_id
+            loser_name = poke_a_id
+            winner_hp = 1
+            loser_hp = 0
+        if verbose:
+            battle_log.append(
+                f"Tie! Randomly selected {winner_name} as winner with 1 HP."
+            )
+    elif a_score > b_score:
         winner = "A"
         winner_name = poke_a_id
         loser_name = poke_b_id
-        # Remaining HP: proportional to margin
         margin = a_score - b_score
         winner_hp = int(min(poke_a_cur_hp, margin * 0.7))
         loser_hp = 0
