@@ -1,41 +1,41 @@
 {
   "Charmander / Charmeleon / Charizard": {
-    "1": {"name": "Charmander", "img": "images/charmander.jpg", "gender": "male", "move": "flamethrower"},
-    "2": {"name": "Charmeleon", "img": "images/charmeleon.jpg", "gender": "male", "move": "flamethrower"},
-    "3": {"name": "Charizard", "img": "images/charizard.jpg", "gender": "male", "move": "flamethrower"}
+    "1": {"name": "Charmander", "img": "images/charmander.jpg", "gender": "male", "move": "flamethrower", "type": ["Fire"]},
+    "2": {"name": "Charmeleon", "img": "images/charmeleon.jpg", "gender": "male", "move": "flamethrower", "type": ["Fire"]},
+    "3": {"name": "Charizard", "img": "images/charizard.jpg", "gender": "male", "move": "flamethrower", "type": ["Fire", "Flying"]}
   },
   "Squirtle / Wartortle / Blastoise": {
-    "1": {"name": "Squirtle", "img": "images/squirtle.jpg", "gender": "male", "move": "hydro-pump"},
-    "2": {"name": "Wartortle", "img": "images/wartortle.jpg", "gender": "male", "move": "hydro-pump"},
-    "3": {"name": "Blastoise", "img": "images/blastoise.jpg", "gender": "male", "move": "hydro-pump"}
+    "1": {"name": "Squirtle", "img": "images/squirtle.jpg", "gender": "male", "move": "hydro-pump", "type": ["Water"]},
+    "2": {"name": "Wartortle", "img": "images/wartortle.jpg", "gender": "male", "move": "hydro-pump", "type": ["Water"]},
+    "3": {"name": "Blastoise", "img": "images/blastoise.jpg", "gender": "male", "move": "hydro-pump", "type": ["Water"]}
   },
   "Bulbasaur / Ivysaur / Venusaur": {
-    "1": {"name": "Bulbasaur", "img": "images/bulbasaur.jpg", "gender": "male", "move": "solar-beam"},
-    "2": {"name": "Ivysaur", "img": "images/ivysaur.jpg", "gender": "male", "move": "solar-beam"},
-    "3": {"name": "Venusaur", "img": "images/venusaur.jpg", "gender": "male", "move": "solar-beam"}
+    "1": {"name": "Bulbasaur", "img": "images/bulbasaur.jpg", "gender": "male", "move": "solar-beam", "type": ["Grass", "Poison"]},
+    "2": {"name": "Ivysaur", "img": "images/ivysaur.jpg", "gender": "male", "move": "solar-beam", "type": ["Grass", "Poison"]},
+    "3": {"name": "Venusaur", "img": "images/venusaur.jpg", "gender": "male", "move": "solar-beam", "type": ["Grass", "Poison"]}
   },
   "Pikachu / Raichu": {
-    "1": {"name": "Pikachu", "img": "images/pikachu.jpg", "gender": "male", "move": "thunderbolt"},
-    "2": {"name": "Raichu", "img": "images/raichu.jpg", "gender": "male", "move": "thunderbolt"}
+    "1": {"name": "Pikachu", "img": "images/pikachu.jpg", "gender": "male", "move": "thunderbolt", "type": ["Electric"]},
+    "2": {"name": "Raichu", "img": "images/raichu.jpg", "gender": "male", "move": "thunderbolt", "type": ["Electric"]}
   },
   "Abra / Kadabra / Alakazam": {
-    "1": {"name": "Abra", "img": "images/abra.jpg", "gender": "male", "move": "confusion"},
-    "2": {"name": "Kadabra", "img": "images/kadabra.jpg", "gender": "male", "move": "psybeam"},
-    "3": {"name": "Alakazam", "img": "images/alakazam.jpg", "gender": "male", "move": "psychic"}
+    "1": {"name": "Abra", "img": "images/abra.jpg", "gender": "male", "move": "confusion", "type": ["Psychic"]},
+    "2": {"name": "Kadabra", "img": "images/kadabra.jpg", "gender": "male", "move": "psybeam", "type": ["Psychic"]},
+    "3": {"name": "Alakazam", "img": "images/alakazam.jpg", "gender": "male", "move": "psychic", "type": ["Psychic"]}
   },
   "Machop / Machoke / Machamp": {
-    "1": {"name": "Machop", "img": "images/machop.jpg", "gender": "male", "move": "cross-chop"},
-    "2": {"name": "Machoke", "img": "images/machoke.jpg", "gender": "male", "move": "cross-chop"},
-    "3": {"name": "Machamp", "img": "images/machamp.jpg", "gender": "male", "move": "cross-chop"}
+    "1": {"name": "Machop", "img": "images/machop.jpg", "gender": "male", "move": "cross-chop", "type": ["Fighting"]},
+    "2": {"name": "Machoke", "img": "images/machoke.jpg", "gender": "male", "move": "cross-chop", "type": ["Fighting"]},
+    "3": {"name": "Machamp", "img": "images/machamp.jpg", "gender": "male", "move": "cross-chop", "type": ["Fighting"]}
   },
   "Geodude / Graveler / Golem": {
-    "1": {"name": "Geodude", "img": "images/geodude.jpg", "gender": "male", "move": "earthquake"},
-    "2": {"name": "Graveler", "img": "images/graveler.jpg", "gender": "male", "move": "earthquake"},
-    "3": {"name": "Golem", "img": "images/golem.jpg", "gender": "male", "move": "earthquake"}
+    "1": {"name": "Geodude", "img": "images/geodude.jpg", "gender": "male", "move": "earthquake", "type": ["Rock", "Ground"]},
+    "2": {"name": "Graveler", "img": "images/graveler.jpg", "gender": "male", "move": "earthquake", "type": ["Rock", "Ground"]},
+    "3": {"name": "Golem", "img": "images/golem.jpg", "gender": "male", "move": "earthquake", "type": ["Rock", "Ground"]}
   },
   "Gastly / Haunter / Gengar": {
-    "1": {"name": "Gastly", "img": "images/gastly.jpg", "gender": "male", "move": "shadow-ball"},
-    "2": {"name": "Haunter", "img": "images/haunter.jpg", "gender": "male", "move": "shadow-ball"},
-    "3": {"name": "Gengar", "img": "images/gengar.jpg", "gender": "male", "move": "shadow-ball"}
+    "1": {"name": "Gastly", "img": "images/gastly.jpg", "gender": "male", "move": "shadow-ball", "type": ["Ghost", "Poison"]},
+    "2": {"name": "Haunter", "img": "images/haunter.jpg", "gender": "male", "move": "shadow-ball", "type": ["Ghost", "Poison"]},
+    "3": {"name": "Gengar", "img": "images/gengar.jpg", "gender": "male", "move": "shadow-ball", "type": ["Ghost", "Poison"]}
   }
 }

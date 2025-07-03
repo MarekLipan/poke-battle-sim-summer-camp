@@ -13,12 +13,11 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QGraphicsOpacityEffect,
 )
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen
 from PyQt5.QtCore import Qt
 import sys
 import os
 import json
-import poke_battle_sim as pb
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import battle_simulator
@@ -53,16 +52,26 @@ class PokemonWrapper:
             )
             self.gender = stage_info.get("gender", "male")
             self.level = level
-            poke = pb.Pokemon(
-                self.name,
-                self.level,
-                [self.move],
-                self.gender,
-                ivs=[15, 15, 15, 15, 15, 15],
-                evs=[0, 0, 0, 0, 0, 0],
-                nature="hardy",
+            self.type = stage_info.get("type", ["Normal"])
+            BASE_HP = 30
+            LEVEL_MULT = 3
+            STAGE_MULT = 25
+            if self.name == "Pikachu":
+                self.stage = 1
+                bonus = 0.5 * STAGE_MULT
+            elif self.name == "Raichu":
+                self.stage = 2
+                bonus = 0.5 * STAGE_MULT
+            else:
+                self.stage = int(stage)
+                bonus = 0
+            self.max_hp = (
+                BASE_HP
+                + (self.level * LEVEL_MULT)
+                + (self.stage * STAGE_MULT)
+                + bonus
+                + HP_BOOST
             )
-            self.max_hp = poke.max_hp * HP_BOOST
             self.cur_hp = self.max_hp
         else:
             self.max_hp = 0
@@ -72,6 +81,8 @@ class PokemonWrapper:
             self.img = None
             self.gender = None
             self.level = 0
+            self.type = ["Normal"]  # Always set type
+            self.stage = 1  # Always set stage
 
     def is_alive(self):
         return self.level > 0 and self.cur_hp > 0
@@ -146,49 +157,33 @@ class TeamBattleManager:
     def do_battle_turn(self):
         t1 = self.team_a.get_active()
         t2 = self.team_b.get_active()
-        # Simulate the battle multiple times and average the winner's HP
-        NUM_SIMULATIONS = 100
-        win_hp = []
-        winner = None
-        for _ in range(NUM_SIMULATIONS):
-            result = battle_simulator.simulate_battle(
-                poke_a_id=t1.name,
-                poke_b_id=t2.name,
-                poke_a_moves=[t1.move],
-                poke_b_moves=[t2.move],
-                poke_a_gender=t1.gender,
-                poke_b_gender=t2.gender,
-                poke_a_level=t1.level,
-                poke_b_level=t2.level,
-                poke_a_cur_hp=t1.cur_hp,
-                poke_b_cur_hp=t2.cur_hp,
-                hp_boost=HP_BOOST,
-                verbose=False,
-            )
-            win_hp.append((result["winner"], result["winner_hp"]))
-        # Determine most frequent winner
-        from collections import Counter
-
-        win_counts = Counter(w for w, _ in win_hp)
-        if win_counts["A"] >= win_counts["B"]:
-            winner = "A"
-        else:
-            winner = "B"
-        avg_hp = (
-            int(round(sum(hp for w, hp in win_hp if w == winner) / win_counts[winner]))
-            if win_counts[winner]
-            else 0
+        # Use deterministic_battle by default
+        result = battle_simulator.deterministic_battle(
+            poke_a_id=t1.name,
+            poke_b_id=t2.name,
+            poke_a_moves=[t1.move],
+            poke_b_moves=[t2.move],
+            poke_a_gender=t1.gender,
+            poke_b_gender=t2.gender,
+            poke_a_level=t1.level,
+            poke_b_level=t2.level,
+            poke_a_cur_hp=t1.cur_hp,
+            poke_b_cur_hp=t2.cur_hp,
+            poke_a_type=t1.type,
+            poke_b_type=t2.type,
+            poke_a_stage=t1.stage,
+            poke_b_stage=t2.stage,
+            verbose=False,
         )
-        # Update HPs based on average result
+        winner = result["winner"]
+        avg_hp = result["winner_hp"]
         if winner == "A":
             t1.cur_hp = avg_hp
             t2.cur_hp = 0
         else:
             t1.cur_hp = 0
             t2.cur_hp = avg_hp
-        self.battle_log.append(
-            f"Simulated {NUM_SIMULATIONS} battles. Winner: {'A' if winner == 'A' else 'B'} (avg HP: {avg_hp})"
-        )
+        self.battle_log.append(f"Deterministic battle. Winner: {winner} (HP: {avg_hp})")
 
     def is_battle_over(self):
         # This needs to be re-evaluated based on the local battle
@@ -294,15 +289,6 @@ class MainWindow(QMainWindow):
         self.battle_log.setReadOnly(True)
         log_layout.addWidget(self.battle_log)
 
-        # Substitution buttons
-        self.sub_buttons = []
-        for i in range(2):
-            btn = QPushButton(f"Substitute for Trainer {i+1}")
-            btn.setStyleSheet(button_style)
-            btn.clicked.connect(lambda _, idx=i: self.prompt_substitute(idx))
-            self.sub_buttons.append(btn)
-            log_layout.addWidget(btn)
-
         # Next turn button
         self.next_turn_btn = QPushButton("Battle")
         self.next_turn_btn.setStyleSheet(button_style)
@@ -324,18 +310,14 @@ class MainWindow(QMainWindow):
         self.trainer2_name.setText(self.manager.team_b.name)
         self.poke1_info.setText(f"Lv. {poke1.level} {poke1.name}")
         self.poke2_info.setText(f"Lv. {poke2.level} {poke2.name}")
-        self.poke1_img.setPixmap(
-            QPixmap(poke1.img).scaled(120, 120, Qt.KeepAspectRatio)
-        )
-        self.poke2_img.setPixmap(
-            QPixmap(poke2.img).scaled(120, 120, Qt.KeepAspectRatio)
-        )
-        self.poke1_hp.setMaximum(poke1.max_hp)
-        self.poke2_hp.setMaximum(poke2.max_hp)
-        self.poke1_hp.setValue(poke1.cur_hp)
-        self.poke2_hp.setValue(poke2.cur_hp)
-        self.poke1_hp.setFormat(f"{poke1.cur_hp}/{poke1.max_hp} HP")
-        self.poke2_hp.setFormat(f"{poke2.cur_hp}/{poke2.max_hp} HP")
+        self.poke1_img.setPixmap(get_square_icon(poke1.img, size=120))
+        self.poke2_img.setPixmap(get_square_icon(poke2.img, size=120))
+        self.poke1_hp.setMaximum(int(poke1.max_hp))
+        self.poke2_hp.setMaximum(int(poke2.max_hp))
+        self.poke1_hp.setValue(int(poke1.cur_hp))
+        self.poke2_hp.setValue(int(poke2.cur_hp))
+        self.poke1_hp.setFormat(f"{int(poke1.cur_hp)}/{int(poke1.max_hp)} HP")
+        self.poke2_hp.setFormat(f"{int(poke2.cur_hp)}/{int(poke2.max_hp)} HP")
 
         # Set health bar color (classic thresholds)
         def hp_color(cur, max_):
@@ -367,9 +349,10 @@ class MainWindow(QMainWindow):
 
             row, col = 0, 0
             for pw in team.pokemon_wrappers:
+                if pw.level <= 0:
+                    continue
                 icon = QLabel()
-                pixmap = QPixmap(pw.img).scaled(40, 40, Qt.KeepAspectRatio)
-                icon.setPixmap(pixmap)
+                icon.setPixmap(get_square_icon(pw.img, size=56))
 
                 name = QLabel(pw.name)
                 level = QLabel(f"Lv. {pw.level}")
@@ -438,6 +421,44 @@ class MainWindow(QMainWindow):
             self.update_ui()
 
 
+def get_square_icon(
+    img_path, size=60, border_color="#444", border_width=3, pad_color="#fff"
+):
+    """
+    Returns a square QPixmap of given size, with the image centered, padded, and a border.
+    """
+    pixmap = QPixmap(img_path)
+    if pixmap.isNull():
+        # fallback: blank
+        pixmap = QPixmap(size, size)
+        pixmap.fill(QColor(pad_color))
+        return pixmap
+    # Scale to fit inside square, keeping aspect
+    scaled = pixmap.scaled(
+        size - 2 * border_width - 8,
+        size - 2 * border_width - 8,
+        Qt.KeepAspectRatio,
+        Qt.SmoothTransformation,
+    )
+    # Create square pixmap
+    square = QPixmap(size, size)
+    square.fill(QColor(pad_color))
+    painter = QPainter(square)
+    # Center the image
+    x = (size - scaled.width()) // 2
+    y = (size - scaled.height()) // 2
+    painter.drawPixmap(x, y, scaled)
+    # Draw border
+    pen = QPen(QColor(border_color))
+    pen.setWidth(border_width)
+    painter.setPen(pen)
+    painter.drawRect(
+        border_width // 2, border_width // 2, size - border_width, size - border_width
+    )
+    painter.end()
+    return square
+
+
 class SubstitutionDialog(QDialog):
     def __init__(self, trainer_name, alive_pokemon, parent=None):
         super().__init__(parent)
@@ -449,21 +470,20 @@ class SubstitutionDialog(QDialog):
 
         for i, (idx, pw) in enumerate(alive_pokemon):
             icon = QLabel()
-            pixmap = QPixmap(pw.img).scaled(60, 60, Qt.KeepAspectRatio)
-            icon.setPixmap(pixmap)
+            icon.setPixmap(get_square_icon(pw.img, size=60))
 
             name = QLabel(pw.name)
             level = QLabel(f"Lv. {pw.level}")
 
             btn = QPushButton("Select")
-            btn.clicked.connect(lambda _, index=idx: self.select_pokemon(index))
+            btn.clicked.connect(lambda _, index=idx: self._select_pokemon(index))
 
             layout.addWidget(icon, i, 0)
             layout.addWidget(name, i, 1)
             layout.addWidget(level, i, 2)
             layout.addWidget(btn, i, 3)
 
-    def select_pokemon(self, index):
+    def _select_pokemon(self, index):
         self.selected_pokemon_index = index
         self.accept()
 
@@ -506,19 +526,28 @@ class TournamentWindow(QMainWindow):
             # Team roster
             team = next(t for t in self.teams_config if t["trainer"] == trainer)
             grid = QGridLayout()
+            row, col = 0, 0
             for idx, poke in enumerate(team["pokemon"]):
+                if poke["level"] <= 0:
+                    continue
                 poke_name = self.pokemon_stages[poke["name"]][str(poke["stage"])]
                 icon = QLabel()
-                pixmap = QPixmap(
-                    os.path.join(os.path.dirname(__file__), poke_name["img"])
+                icon.setPixmap(
+                    get_square_icon(
+                        os.path.join(os.path.dirname(__file__), poke_name["img"]),
+                        size=40,
+                    )
                 )
-                icon.setPixmap(pixmap.scaled(40, 40, Qt.KeepAspectRatio))
                 poke_label = QLabel(f"Lv.{poke['level']} {poke_name['name']}")
                 poke_label.setAlignment(Qt.AlignCenter)
                 poke_widget = QVBoxLayout()
                 poke_widget.addWidget(icon)
                 poke_widget.addWidget(poke_label)
-                grid.addLayout(poke_widget, idx // 3, idx % 3)
+                grid.addLayout(poke_widget, row, col)
+                col += 1
+                if col > 2:
+                    col = 0
+                    row += 1
             vbox.addLayout(grid)
             score_layout.addLayout(vbox)
         main_layout.addLayout(score_layout)
@@ -570,10 +599,21 @@ class TournamentWindow(QMainWindow):
             team_b_alive = any(
                 pw.is_alive() for pw in battle_manager.team_b.pokemon_wrappers
             )
+            winner = None
             if team_a_alive and not team_b_alive:
                 self.scores[self.trainers[a_idx]] += 1
+                winner = self.trainers[a_idx]
             elif team_b_alive and not team_a_alive:
                 self.scores[self.trainers[b_idx]] += 1
+                winner = self.trainers[b_idx]
+            if winner:
+                from PyQt5.QtWidgets import QMessageBox
+
+                msg = QMessageBox(self)
+                msg.setWindowTitle("Battle Result")
+                msg.setText(f"{winner} wins this battle!")
+                msg.setIcon(QMessageBox.Information)
+                msg.exec_()
             # Close battle window and update
             battle_window.close()
             self.current_battle_idx += 1
