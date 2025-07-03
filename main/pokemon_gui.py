@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QPropertyAnimation
 import sys
 import os
 import json
@@ -209,12 +210,17 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.manager = manager
         self.setWindowTitle("Pokémon Team Battle Visualizer")
+        self._hp_animations = []  # Store HP bar animations
+        self._last_hp1 = None
+        self._last_hp2 = None
         self.init_ui()
         self.update_ui()
 
     def init_ui(self):
         main_layout = QVBoxLayout()
-        team_layout = QHBoxLayout()
+        team_layout = (
+            QHBoxLayout()
+        )  # Fixed: was 'Q', should be 'QHBoxLayout()' or 'QVBoxLayout()' as appropriate
         log_layout = QVBoxLayout()
 
         # Restore original background color (remove forced white)
@@ -304,6 +310,33 @@ class MainWindow(QMainWindow):
         central.setLayout(main_layout)
         self.setCentralWidget(central)
 
+    def animate_hp_bar(self, bar, start, end, max_hp):
+        # Animate the HP bar from start to end value, updating color as it animates
+        animation = QPropertyAnimation(bar, b"value")
+        animation.setDuration(600)
+        animation.setStartValue(int(start))
+        animation.setEndValue(int(end))
+        animation.valueChanged.connect(
+            lambda val: self.update_hp_bar_color(bar, val, max_hp)
+        )
+        animation.finished.connect(lambda: self.update_hp_bar_color(bar, end, max_hp))
+        animation.start()
+        # Store reference to prevent garbage collection
+        if not hasattr(self, "_hp_animations"):
+            self._hp_animations = []
+        self._hp_animations.append(animation)
+        # Clean up finished animations
+        animation.finished.connect(lambda: self._hp_animations.remove(animation))
+
+    def update_hp_bar_color(self, bar, value, max_hp):
+        ratio = value / max_hp if max_hp else 0
+        if ratio > 0.5:
+            bar.setStyleSheet("QProgressBar::chunk {background-color: #4caf50;}")
+        elif ratio > 0.2:
+            bar.setStyleSheet("QProgressBar::chunk {background-color: #ffb300;}")
+        else:
+            bar.setStyleSheet("QProgressBar::chunk {background-color: #e53935;}")
+
     def update_ui(self):
         poke1, poke2 = self.manager.get_current_battlers()
         self.trainer1_name.setText(self.manager.team_a.name)
@@ -314,23 +347,30 @@ class MainWindow(QMainWindow):
         self.poke2_img.setPixmap(get_square_icon(poke2.img, size=120))
         self.poke1_hp.setMaximum(int(poke1.max_hp))
         self.poke2_hp.setMaximum(int(poke2.max_hp))
-        self.poke1_hp.setValue(int(poke1.cur_hp))
-        self.poke2_hp.setValue(int(poke2.cur_hp))
+        # Animate HP bars if values changed and HP is decreasing
+        if not hasattr(self, "_last_hp1") or self._last_hp1 is None:
+            self._last_hp1 = poke1.cur_hp
+        if not hasattr(self, "_last_hp2") or self._last_hp2 is None:
+            self._last_hp2 = poke2.cur_hp
+        # Only animate if HP is decreasing
+        if int(self._last_hp1) > int(poke1.cur_hp):
+            self.animate_hp_bar(
+                self.poke1_hp, self._last_hp1, poke1.cur_hp, poke1.max_hp
+            )
+        else:
+            self.update_hp_bar_color(self.poke1_hp, poke1.cur_hp, poke1.max_hp)
+            self.poke1_hp.setValue(int(poke1.cur_hp))
+        if int(self._last_hp2) > int(poke2.cur_hp):
+            self.animate_hp_bar(
+                self.poke2_hp, self._last_hp2, poke2.cur_hp, poke2.max_hp
+            )
+        else:
+            self.update_hp_bar_color(self.poke2_hp, poke2.cur_hp, poke2.max_hp)
+            self.poke2_hp.setValue(int(poke2.cur_hp))
+        self._last_hp1 = poke1.cur_hp
+        self._last_hp2 = poke2.cur_hp
         self.poke1_hp.setFormat(f"{int(poke1.cur_hp)}/{int(poke1.max_hp)} HP")
         self.poke2_hp.setFormat(f"{int(poke2.cur_hp)}/{int(poke2.max_hp)} HP")
-
-        # Set health bar color (classic thresholds)
-        def hp_color(cur, max_):
-            ratio = cur / max_ if max_ else 0
-            if ratio > 0.5:
-                return "QProgressBar::chunk {background-color: #4caf50;}"
-            elif ratio > 0.2:
-                return "QProgressBar::chunk {background-color: #ffb300;}"
-            else:
-                return "QProgressBar::chunk {background-color: #e53935;}"
-
-        self.poke1_hp.setStyleSheet(hp_color(poke1.cur_hp, poke1.max_hp))
-        self.poke2_hp.setStyleSheet(hp_color(poke2.cur_hp, poke2.max_hp))
 
         # Show only the two currently fighting trainers' teams
         for i, container in enumerate(self.team_containers):
@@ -379,7 +419,10 @@ class MainWindow(QMainWindow):
         self.battle_log.setText(self.manager.get_battle_log())
 
     def next_turn(self):
+        prev1 = self.manager.team_a.get_active().cur_hp
+        prev2 = self.manager.team_b.get_active().cur_hp
         self.manager.do_battle_turn()
+        # Animate HP bars after battle
         self.update_ui()
 
         # Handle fainted Pokémon
