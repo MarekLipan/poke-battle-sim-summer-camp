@@ -319,6 +319,20 @@ class MainWindow(QMainWindow):
             self.team_layouts.append({"name": trainer_name, "grid": roster_grid_layout})
             self.team_containers.append(team_container)
 
+        # Add a stylish vertical separator between the two teams in the battle window
+        team_separator = QWidget()
+        team_separator.setFixedWidth(10)
+        team_separator.setMinimumHeight(120)
+        team_separator.setStyleSheet(
+            """
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e0e0e0, stop:0.5 #bdbdbd, stop:1 #e0e0e0);
+            border-radius: 5px;
+            margin-left: 8px;
+            margin-right: 8px;
+            """
+        )
+        team_layout.insertWidget(1, team_separator)
+
         # Battle log
         self.battle_log = QTextEdit()
         self.battle_log.setReadOnly(True)
@@ -670,6 +684,20 @@ class TournamentWindow(QMainWindow):
             vbox.addLayout(grid)
             score_layout.addLayout(vbox)
         main_layout.addLayout(score_layout)
+        # Add a stylish vertical separator between teams in the tournament window
+        for i in range(score_layout.count() - 1):
+            separator = QWidget()
+            separator.setFixedWidth(10)
+            separator.setMinimumHeight(120)
+            separator.setStyleSheet(
+                """
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e0e0e0, stop:0.5 #bdbdbd, stop:1 #e0e0e0);
+                border-radius: 5px;
+                margin-left: 8px;
+                margin-right: 8px;
+                """
+            )
+            score_layout.insertWidget(2 * i + 1, separator)
         # Next battle button
         self.next_battle_btn = QPushButton("Start Next Battle")
         self.next_battle_btn.clicked.connect(self.start_next_battle)
