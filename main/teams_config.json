@@ -1,6 +1,7 @@
 [
   {
     "trainer": "Trainer 1",
+    "color": "#e53935",
     "pokemon": [
       {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 10},
       {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 0},
@@ -14,6 +15,7 @@
   },
   {
     "trainer": "Trainer 2",
+    "color": "#43a047",
     "pokemon": [
       {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 0},
       {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 12},
@@ -27,6 +29,7 @@
   },
   {
     "trainer": "Trainer 3",
+    "color": "#1e88e5",
     "pokemon": [
       {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 13},
       {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 11},
@@ -40,6 +43,7 @@
   },
   {
     "trainer": "Trainer 4",
+    "color": "#ffd600",
     "pokemon": [
       {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 15},
       {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 0},

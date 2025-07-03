@@ -234,19 +234,14 @@ class MainWindow(QMainWindow):
         battle_area_layout = QHBoxLayout()
         battle_area_layout.setSpacing(30)
 
-        # Style for the fighting Pokémon frame (darker, more visible)
-        frame_style = (
-            "QWidget {"
-            "  background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #263238, stop:1 #607d8b);"
-            "  border: 5px solid #ffd600;"
-            "  border-radius: 22px;"
-            "  box-shadow: 0px 8px 32px rgba(0,0,0,0.35);"
-            "}"
-        )
+        # Load trainer colors from config
+        self.trainer_colors = {}
+        for team in TEAMS_CONFIG:
+            self.trainer_colors[team["trainer"]] = team.get("color", "#fff")
 
         # --- Left Pokémon (Trainer 1) ---
         poke1_frame = QWidget()
-        poke1_frame.setStyleSheet(frame_style)
+        poke1_frame.setStyleSheet("background: none; border: none;")
         poke1_frame_layout = QVBoxLayout()
         poke1_frame_layout.setAlignment(Qt.AlignCenter)
         poke1_frame.setLayout(poke1_frame_layout)
@@ -254,13 +249,14 @@ class MainWindow(QMainWindow):
         self.trainer1_name.setAlignment(Qt.AlignCenter)
         self.poke1_info = QLabel()
         self.poke1_info.setAlignment(Qt.AlignCenter)
+        # Large icon with gold border
         self.poke1_img = QLabel()
         self.poke1_img.setAlignment(Qt.AlignCenter)
+        self.poke1_img.setFixedSize(240, 240)
         self.poke1_hp = QProgressBar()
         self.poke1_hp.setMaximum(100)
         self.poke1_hp.setTextVisible(True)
         self.poke1_hp.setFixedWidth(180)
-        self.poke1_img.setFixedSize(180, 180)
         poke1_frame_layout.addWidget(self.trainer1_name)
         poke1_frame_layout.addWidget(self.poke1_info)
         poke1_frame_layout.addWidget(self.poke1_img, alignment=Qt.AlignCenter)
@@ -277,7 +273,7 @@ class MainWindow(QMainWindow):
 
         # --- Right Pokémon (Trainer 2) ---
         poke2_frame = QWidget()
-        poke2_frame.setStyleSheet(frame_style)
+        poke2_frame.setStyleSheet("background: none; border: none;")
         poke2_frame_layout = QVBoxLayout()
         poke2_frame_layout.setAlignment(Qt.AlignCenter)
         poke2_frame.setLayout(poke2_frame_layout)
@@ -285,13 +281,14 @@ class MainWindow(QMainWindow):
         self.trainer2_name.setAlignment(Qt.AlignCenter)
         self.poke2_info = QLabel()
         self.poke2_info.setAlignment(Qt.AlignCenter)
+        # Large icon with gold border
         self.poke2_img = QLabel()
         self.poke2_img.setAlignment(Qt.AlignCenter)
+        self.poke2_img.setFixedSize(240, 240)
         self.poke2_hp = QProgressBar()
         self.poke2_hp.setMaximum(100)
         self.poke2_hp.setTextVisible(True)
         self.poke2_hp.setFixedWidth(180)
-        self.poke2_img.setFixedSize(180, 180)
         poke2_frame_layout.addWidget(self.trainer2_name)
         poke2_frame_layout.addWidget(self.poke2_info)
         poke2_frame_layout.addWidget(self.poke2_img, alignment=Qt.AlignCenter)
@@ -385,12 +382,37 @@ class MainWindow(QMainWindow):
 
     def update_ui(self):
         poke1, poke2 = self.manager.get_current_battlers()
+        color1 = self.trainer_colors.get(self.manager.team_a.name, "#fff")
+        color2 = self.trainer_colors.get(self.manager.team_b.name, "#fff")
         self.trainer1_name.setText(self.manager.team_a.name)
         self.trainer2_name.setText(self.manager.team_b.name)
+        self.trainer1_name.setStyleSheet(
+            f"font-size: 18px; font-weight: bold; color: {color1}; background: none; border: none;"
+        )
+        self.trainer2_name.setStyleSheet(
+            f"font-size: 18px; font-weight: bold; color: {color2}; background: none; border: none;"
+        )
         self.poke1_info.setText(f"Lv. {poke1.level} {poke1.name}")
         self.poke2_info.setText(f"Lv. {poke2.level} {poke2.name}")
-        self.poke1_img.setPixmap(get_square_icon(poke1.img, size=120))
-        self.poke2_img.setPixmap(get_square_icon(poke2.img, size=120))
+        # Draw large icon with trainer color border for fighting Pokémon, with white padding
+        self.poke1_img.setPixmap(
+            get_square_icon(
+                poke1.img,
+                size=220,
+                border_color=color1,
+                border_width=8,
+                pad_color="#fff",
+            )
+        )
+        self.poke2_img.setPixmap(
+            get_square_icon(
+                poke2.img,
+                size=220,
+                border_color=color2,
+                border_width=8,
+                pad_color="#fff",
+            )
+        )
         self.poke1_hp.setMaximum(int(poke1.max_hp))
         self.poke2_hp.setMaximum(int(poke2.max_hp))
         # Animate HP bars if values changed and HP is decreasing
@@ -607,6 +629,14 @@ class TournamentWindow(QMainWindow):
             vbox = QVBoxLayout()
             name_label = QLabel(trainer)
             name_label.setAlignment(Qt.AlignCenter)
+            # Set trainer color from config
+            color = next(
+                (t["color"] for t in self.teams_config if t["trainer"] == trainer),
+                "#fff",
+            )
+            name_label.setStyleSheet(
+                f"font-size: 18px; font-weight: bold; color: {color}; background: none; border: none;"
+            )
             score_label = QLabel("Score: 0")
             score_label.setAlignment(Qt.AlignCenter)
             self.score_labels.append(score_label)
@@ -616,7 +646,7 @@ class TournamentWindow(QMainWindow):
             team = next(t for t in self.teams_config if t["trainer"] == trainer)
             grid = QGridLayout()
             row, col = 0, 0
-            for idx, poke in enumerate(team["pokemon"]):
+            for poke in team["pokemon"]:
                 if poke["level"] <= 0:
                     continue
                 poke_name = self.pokemon_stages[poke["name"]][str(poke["stage"])]
