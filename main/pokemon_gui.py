@@ -56,7 +56,8 @@ class PokemonWrapper:
             self.type = stage_info.get("type", ["Normal"])
             BASE_HP = 30
             LEVEL_MULT = 3
-            STAGE_MULT = 25
+            # Slightly boost HP gain for evolution
+            STAGE_MULT = 32  # was 25
             if self.name == "Pikachu":
                 self.stage = 1
                 bonus = 0.5 * STAGE_MULT

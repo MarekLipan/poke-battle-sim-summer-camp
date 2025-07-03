@@ -84,18 +84,45 @@ def simulate_battle(
             f"Final: {poke_a_id} HP: {poke_a.cur_hp}, {poke_b_id} HP: {poke_b.cur_hp}"
         )
     # Determine winner and HP left
-    if poke_a.is_alive:
+    if poke_a.cur_hp <= 0 and poke_b.cur_hp <= 0:
+        # Both fainted: randomly pick one to survive with 1 HP
+        import random
+
+        if random.choice([True, False]):
+            poke_a.cur_hp = 1
+            poke_b.cur_hp = 0
+            winner = "A"
+            winner_name = poke_a_id
+            winner_hp = 1
+            loser_name = poke_b_id
+            loser_hp = 0
+        else:
+            poke_a.cur_hp = 0
+            poke_b.cur_hp = 1
+            winner = "B"
+            winner_name = poke_b_id
+            winner_hp = 1
+            loser_name = poke_a_id
+            loser_hp = 0
+    elif poke_a.cur_hp > 0 and poke_b.cur_hp <= 0:
         winner = "A"
         winner_name = poke_a_id
         winner_hp = poke_a.cur_hp
         loser_name = poke_b_id
         loser_hp = poke_b.cur_hp
-    else:
+    elif poke_b.cur_hp > 0 and poke_a.cur_hp <= 0:
         winner = "B"
         winner_name = poke_b_id
         winner_hp = poke_b.cur_hp
         loser_name = poke_a_id
         loser_hp = poke_a.cur_hp
+    else:
+        # Both are alive (should not happen, but fallback)
+        winner = "A"
+        winner_name = poke_a_id
+        winner_hp = poke_a.cur_hp
+        loser_name = poke_b_id
+        loser_hp = poke_b.cur_hp
     return {
         "winner": winner,
         "winner_name": winner_name,
@@ -152,11 +179,14 @@ def deterministic_battle(
     # Calculate scores
     a_type_mult = get_type_multiplier(poke_a_type, poke_b_type)
     b_type_mult = get_type_multiplier(poke_b_type, poke_a_type)
+    # Make type advantage more pronounced by increasing its weight
+    TYPE_WEIGHT = 60  # was 20
+    STAGE_WEIGHT = 14  # was 10, slightly boost evolution effect
     a_score = (
-        poke_a_level * 2 + poke_a_cur_hp * 1.5 + a_type_mult * 20 + poke_a_stage * 10
+        poke_a_level * 2 + poke_a_cur_hp * 1.5 + a_type_mult * TYPE_WEIGHT + poke_a_stage * STAGE_WEIGHT
     )
     b_score = (
-        poke_b_level * 2 + poke_b_cur_hp * 1.5 + b_type_mult * 20 + poke_b_stage * 10
+        poke_b_level * 2 + poke_b_cur_hp * 1.5 + b_type_mult * TYPE_WEIGHT + poke_b_stage * STAGE_WEIGHT
     )
     battle_log = []
     if verbose:
