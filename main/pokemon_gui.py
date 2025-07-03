@@ -230,10 +230,26 @@ class MainWindow(QMainWindow):
             "QPushButton:disabled { background-color: #cccccc; color: #888888; }"
         )
 
-        # Battle area
+        # --- Battle area ---
         battle_area_layout = QHBoxLayout()
+        battle_area_layout.setSpacing(30)
 
-        poke1_layout = QVBoxLayout()
+        # Style for the fighting Pokémon frame (darker, more visible)
+        frame_style = (
+            "QWidget {"
+            "  background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #263238, stop:1 #607d8b);"
+            "  border: 5px solid #ffd600;"
+            "  border-radius: 22px;"
+            "  box-shadow: 0px 8px 32px rgba(0,0,0,0.35);"
+            "}"
+        )
+
+        # --- Left Pokémon (Trainer 1) ---
+        poke1_frame = QWidget()
+        poke1_frame.setStyleSheet(frame_style)
+        poke1_frame_layout = QVBoxLayout()
+        poke1_frame_layout.setAlignment(Qt.AlignCenter)
+        poke1_frame.setLayout(poke1_frame_layout)
         self.trainer1_name = QLabel()
         self.trainer1_name.setAlignment(Qt.AlignCenter)
         self.poke1_info = QLabel()
@@ -243,13 +259,28 @@ class MainWindow(QMainWindow):
         self.poke1_hp = QProgressBar()
         self.poke1_hp.setMaximum(100)
         self.poke1_hp.setTextVisible(True)
-        self.poke1_hp.setFixedWidth(120)  # Make HP bar shorter
-        poke1_layout.addWidget(self.trainer1_name)
-        poke1_layout.addWidget(self.poke1_info)
-        poke1_layout.addWidget(self.poke1_img, alignment=Qt.AlignCenter)
-        poke1_layout.addWidget(self.poke1_hp, alignment=Qt.AlignCenter)
+        self.poke1_hp.setFixedWidth(180)
+        self.poke1_img.setFixedSize(180, 180)
+        poke1_frame_layout.addWidget(self.trainer1_name)
+        poke1_frame_layout.addWidget(self.poke1_info)
+        poke1_frame_layout.addWidget(self.poke1_img, alignment=Qt.AlignCenter)
+        poke1_frame_layout.addWidget(self.poke1_hp, alignment=Qt.AlignCenter)
 
-        poke2_layout = QVBoxLayout()
+        # --- Center VS label ---
+        vs_label = QLabel("VS")
+        vs_label.setAlignment(Qt.AlignCenter)
+        vs_label.setStyleSheet(
+            "font-size: 38px; font-weight: bold; color: #d32f2f; text-shadow: 2px 2px 8px #fff;"
+        )
+        vs_label.setFixedWidth(80)
+        vs_label.setMinimumHeight(60)
+
+        # --- Right Pokémon (Trainer 2) ---
+        poke2_frame = QWidget()
+        poke2_frame.setStyleSheet(frame_style)
+        poke2_frame_layout = QVBoxLayout()
+        poke2_frame_layout.setAlignment(Qt.AlignCenter)
+        poke2_frame.setLayout(poke2_frame_layout)
         self.trainer2_name = QLabel()
         self.trainer2_name.setAlignment(Qt.AlignCenter)
         self.poke2_info = QLabel()
@@ -259,15 +290,16 @@ class MainWindow(QMainWindow):
         self.poke2_hp = QProgressBar()
         self.poke2_hp.setMaximum(100)
         self.poke2_hp.setTextVisible(True)
-        self.poke2_hp.setFixedWidth(120)  # Make HP bar shorter
-        poke2_layout.addWidget(self.trainer2_name)
-        poke2_layout.addWidget(self.poke2_info)
-        poke2_layout.addWidget(self.poke2_img, alignment=Qt.AlignCenter)
-        poke2_layout.addWidget(self.poke2_hp, alignment=Qt.AlignCenter)
+        self.poke2_hp.setFixedWidth(180)
+        self.poke2_img.setFixedSize(180, 180)
+        poke2_frame_layout.addWidget(self.trainer2_name)
+        poke2_frame_layout.addWidget(self.poke2_info)
+        poke2_frame_layout.addWidget(self.poke2_img, alignment=Qt.AlignCenter)
+        poke2_frame_layout.addWidget(self.poke2_hp, alignment=Qt.AlignCenter)
 
-        battle_area_layout.addLayout(poke1_layout)
-        battle_area_layout.addWidget(QLabel("VS"))
-        battle_area_layout.addLayout(poke2_layout)
+        battle_area_layout.addWidget(poke1_frame)
+        battle_area_layout.addWidget(vs_label, alignment=Qt.AlignVCenter)
+        battle_area_layout.addWidget(poke2_frame)
 
         # Team rosters
         self.team_layouts = []
@@ -309,6 +341,20 @@ class MainWindow(QMainWindow):
         central = QWidget()
         central.setLayout(main_layout)
         self.setCentralWidget(central)
+
+        # Remove any frame/border from labels and health bars
+        label_style = "font-size: 18px; font-weight: bold; color: #fff; background: none; border: none;"
+        info_style = "font-size: 15px; color: #fff; background: none; border: none;"
+        hp_style = (
+            "QProgressBar { background: #222; border: none; border-radius: 8px; color: #fff; } "
+            "QProgressBar::chunk { border-radius: 8px; background-color: #4caf50; border: none; }"
+        )
+        self.trainer1_name.setStyleSheet(label_style)
+        self.trainer2_name.setStyleSheet(label_style)
+        self.poke1_info.setStyleSheet(info_style)
+        self.poke2_info.setStyleSheet(info_style)
+        self.poke1_hp.setStyleSheet(hp_style)
+        self.poke2_hp.setStyleSheet(hp_style)
 
     def animate_hp_bar(self, bar, start, end, max_hp):
         # Animate the HP bar from start to end value, updating color as it animates
