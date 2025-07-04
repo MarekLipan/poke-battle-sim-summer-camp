@@ -18,7 +18,7 @@
     "color": "#43a047",
     "pokemon": [
       {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 0},
-      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 20},
+      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 19},
       {"name": "Charmander / Charmeleon / Charizard", "stage": 1, "level": 0},
       {"name": "Gastly / Haunter / Gengar", "stage": 1, "level": 0},
       {"name": "Geodude / Graveler / Golem", "stage": 1, "level": 0},

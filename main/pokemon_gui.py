@@ -221,14 +221,12 @@ class MainWindow(QMainWindow):
 
     def prompt_starting_pokemon_if_needed(self):
         # Only prompt once at the very start
-        if getattr(self, '_prompted_starting', False):
+        if getattr(self, "_prompted_starting", False):
             return
         self._prompted_starting = True
         for idx, team in enumerate([self.manager.team_a, self.manager.team_b]):
             alive_pokemon = [
-                (i, pw)
-                for i, pw in enumerate(team.pokemon_wrappers)
-                if pw.is_alive()
+                (i, pw) for i, pw in enumerate(team.pokemon_wrappers) if pw.is_alive()
             ]
             if not alive_pokemon:
                 continue
