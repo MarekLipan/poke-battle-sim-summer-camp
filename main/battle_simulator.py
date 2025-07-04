@@ -179,7 +179,7 @@ def deterministic_battle(
     # Calculate scores
     a_type_mult = get_type_multiplier(poke_a_type, poke_b_type)
     b_type_mult = get_type_multiplier(poke_b_type, poke_a_type)
-    TYPE_WEIGHT = 60
+    TYPE_WEIGHT = 30
     STAGE_WEIGHT = 14
     a_score = (
         poke_a_level * 2

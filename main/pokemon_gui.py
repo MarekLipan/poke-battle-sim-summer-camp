@@ -215,6 +215,26 @@ class MainWindow(QMainWindow):
         self._last_hp1 = None
         self._last_hp2 = None
         self.init_ui()
+        self._prompted_starting = False
+        self.update_ui()
+        self.prompt_starting_pokemon_if_needed()
+
+    def prompt_starting_pokemon_if_needed(self):
+        # Only prompt once at the very start
+        if getattr(self, '_prompted_starting', False):
+            return
+        self._prompted_starting = True
+        for idx, team in enumerate([self.manager.team_a, self.manager.team_b]):
+            alive_pokemon = [
+                (i, pw)
+                for i, pw in enumerate(team.pokemon_wrappers)
+                if pw.is_alive()
+            ]
+            if not alive_pokemon:
+                continue
+            dialog = StartingPokemonDialog(team.name, alive_pokemon, self)
+            if dialog.exec_() == QDialog.Accepted:
+                team.active_idx = dialog.selected_pokemon_index
         self.update_ui()
 
     def init_ui(self):
@@ -545,6 +565,204 @@ class MainWindow(QMainWindow):
             new_idx = dialog.selected_pokemon_index
             self.manager.handle_faint(team_idx, new_idx)
             self.update_ui()
+
+
+# --- Starting Pokémon selection dialog (Czech) ---
+class StartingPokemonDialog(QDialog):
+    def __init__(self, trainer_name, available_pokemon, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(f"{trainer_name}, vyberte si startovního Pokémona!")
+        self.selected_pokemon_index = -1
+        layout = QGridLayout()
+        self.setLayout(layout)
+        for i, (idx, pw) in enumerate(available_pokemon):
+            icon = QLabel()
+            icon.setPixmap(get_square_icon(pw.img, size=60))
+
+            name = QLabel(pw.name)
+            level = QLabel(f"Lv. {pw.level}")
+
+            btn = QPushButton("Vybrat")
+            btn.clicked.connect(lambda _, index=idx: self._select_pokemon(index))
+
+            layout.addWidget(icon, i, 0)
+            layout.addWidget(name, i, 1)
+            layout.addWidget(level, i, 2)
+            layout.addWidget(btn, i, 3)
+
+    def _select_pokemon(self, index):
+        self.selected_pokemon_index = index
+        self.accept()
+
+
+class TournamentWindow(QMainWindow):
+    def __init__(self, teams_config, pokemon_stages):
+        super().__init__()
+        self.setWindowTitle("Pokémon Tournament")
+        self.teams_config = teams_config
+        self.pokemon_stages = pokemon_stages
+        self.trainers = [team["trainer"] for team in teams_config]
+        self.scores = {trainer: 0 for trainer in self.trainers}
+        self.battle_pairs = self._generate_battle_pairs()
+        self.current_battle_idx = 0
+        self.battle_windows = []
+        self.init_ui()
+        self.update_ui()
+
+    def _generate_battle_pairs(self):
+        pairs = []
+        n = len(self.trainers)
+        for i in range(n):
+            for j in range(i + 1, n):
+                pairs.append((i, j))
+        return pairs
+
+    def init_ui(self):
+        main_layout = QVBoxLayout()
+        self.score_labels = []
+        score_layout = QHBoxLayout()
+        for trainer in self.trainers:
+            vbox = QVBoxLayout()
+            name_label = QLabel(trainer)
+            name_label.setAlignment(Qt.AlignCenter)
+            # Set trainer color from config
+            color = next(
+                (t["color"] for t in self.teams_config if t["trainer"] == trainer),
+                "#fff",
+            )
+            name_label.setStyleSheet(
+                f"font-size: 18px; font-weight: bold; color: {color}; background: none; border: none;"
+            )
+            score_label = QLabel("Score: 0")
+            score_label.setAlignment(Qt.AlignCenter)
+            self.score_labels.append(score_label)
+            vbox.addWidget(name_label)
+            vbox.addWidget(score_label)
+            # Team roster
+            team = next(t for t in self.teams_config if t["trainer"] == trainer)
+            grid = QGridLayout()
+            row, col = 0, 0
+            for poke in team["pokemon"]:
+                if poke["level"] <= 0:
+                    continue
+                poke_name = self.pokemon_stages[poke["name"]][str(poke["stage"])]
+                icon = QLabel()
+                icon.setPixmap(
+                    get_square_icon(
+                        os.path.join(os.path.dirname(__file__), poke_name["img"]),
+                        size=40,
+                    )
+                )
+                poke_label = QLabel(f"Lv.{poke['level']} {poke_name['name']}")
+                poke_label.setAlignment(Qt.AlignCenter)
+                poke_widget = QVBoxLayout()
+                poke_widget.addWidget(icon)
+                poke_widget.addWidget(poke_label)
+                grid.addLayout(poke_widget, row, col)
+                col += 1
+                if col > 2:
+                    col = 0
+                    row += 1
+            vbox.addLayout(grid)
+            score_layout.addLayout(vbox)
+        main_layout.addLayout(score_layout)
+        # Add a stylish vertical separator between teams in the tournament window
+        for i in range(score_layout.count() - 1):
+            separator = QWidget()
+            separator.setFixedWidth(10)
+            separator.setMinimumHeight(120)
+            separator.setStyleSheet(
+                """
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #e0e0e0, stop:0.5 #bdbdbd, stop:1 #e0e0e0);
+                border-radius: 5px;
+                margin-left: 8px;
+                margin-right: 8px;
+                """
+            )
+            score_layout.insertWidget(2 * i + 1, separator)
+        # Next battle button
+        self.next_battle_btn = QPushButton("Start Next Battle")
+        self.next_battle_btn.clicked.connect(self.start_next_battle)
+        main_layout.addWidget(self.next_battle_btn)
+        self.status_label = QLabel()
+        self.status_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(self.status_label)
+        central = QWidget()
+        central.setLayout(main_layout)
+        self.setCentralWidget(central)
+
+    def update_ui(self):
+        for i, trainer in enumerate(self.trainers):
+            self.score_labels[i].setText(f"Score: {self.scores[trainer]}")
+        if self.current_battle_idx < len(self.battle_pairs):
+            a, b = self.battle_pairs[self.current_battle_idx]
+            self.status_label.setText(f"Next: {self.trainers[a]} vs {self.trainers[b]}")
+            self.next_battle_btn.setEnabled(True)
+        else:
+            self.status_label.setText("Tournament finished!")
+            self.next_battle_btn.setEnabled(False)
+
+    def start_next_battle(self):
+        if self.current_battle_idx >= len(self.battle_pairs):
+            return
+        a_idx, b_idx = self.battle_pairs[self.current_battle_idx]
+        # Create a new TeamBattleManager for this battle
+        teams = [self.teams_config[a_idx], self.teams_config[b_idx]]
+        # Patch global config for TeamBattleManager
+        global TEAMS_CONFIG
+        TEAMS_CONFIG = teams
+        battle_manager = TeamBattleManager()
+        battle_window = MainWindow(battle_manager)
+        battle_window.setWindowTitle(
+            f"Battle: {self.trainers[a_idx]} vs {self.trainers[b_idx]}"
+        )
+        battle_window.show()
+        self.battle_windows.append(battle_window)
+
+        # Connect to battle end
+        def on_battle_end():
+            # Determine winner
+            team_a_alive = any(
+                pw.is_alive() for pw in battle_manager.team_a.pokemon_wrappers
+            )
+            team_b_alive = any(
+                pw.is_alive() for pw in battle_manager.team_b.pokemon_wrappers
+            )
+            winner = None
+            if team_a_alive and not team_b_alive:
+                self.scores[self.trainers[a_idx]] += 1
+                winner = self.trainers[a_idx]
+            elif team_b_alive and not team_a_alive:
+                self.scores[self.trainers[b_idx]] += 1
+                winner = self.trainers[b_idx]
+            if winner:
+                from PyQt5.QtWidgets import QMessageBox
+
+                msg = QMessageBox(self)
+                msg.setWindowTitle("Battle Result")
+                msg.setText(f"{winner} wins this battle!")
+                msg.setIcon(QMessageBox.Information)
+                msg.exec_()
+            # Close battle window and update
+            battle_window.close()
+            self.current_battle_idx += 1
+            self.update_ui()
+
+        # Patch MainWindow to call on_battle_end when battle is over
+        orig_next_turn = battle_window.next_turn
+
+        def patched_next_turn():
+            orig_next_turn()
+            if (
+                not battle_manager.team_a.has_alive()
+                or not battle_manager.team_b.has_alive()
+            ):
+                on_battle_end()
+
+        battle_window.next_turn = patched_next_turn
+        battle_window.next_turn_btn.clicked.disconnect()
+        battle_window.next_turn_btn.clicked.connect(battle_window.next_turn)
+        self.update_ui()
 
 
 def get_square_icon(
