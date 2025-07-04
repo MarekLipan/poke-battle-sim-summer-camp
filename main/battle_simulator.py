@@ -179,7 +179,7 @@ def deterministic_battle(
     # Calculate scores
     a_type_mult = get_type_multiplier(poke_a_type, poke_b_type)
     b_type_mult = get_type_multiplier(poke_b_type, poke_a_type)
-    TYPE_WEIGHT = 30
+    TYPE_WEIGHT = 45
     STAGE_WEIGHT = 14
     a_score = (
         poke_a_level * 2
@@ -202,7 +202,7 @@ def deterministic_battle(
     # If scores are exactly equal, randomly pick a winner with 1 HP
     import random
 
-    if abs(a_score - b_score) < 1:
+    if abs(a_score - b_score) <= 1:
         if random.choice([True, False]):
             winner = "A"
             winner_name = poke_a_id
