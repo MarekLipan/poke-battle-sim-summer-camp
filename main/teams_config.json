@@ -3,56 +3,56 @@
     "trainer": "Charmander",
     "color": "#e53935",
     "pokemon": [
-      {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 0},
-      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 3, "level": 1},
-      {"name": "Charmander / Charmeleon / Charizard", "stage": 1, "level": 0},
-      {"name": "Gastly / Haunter / Gengar", "stage": 1, "level": 0},
-      {"name": "Geodude / Graveler / Golem", "stage": 1, "level": 0},
-      {"name": "Machop / Machoke / Machamp", "stage": 1, "level": 0},
-      {"name": "Pikachu / Raichu", "stage": 1, "level": 0},
-      {"name": "Squirtle / Wartortle / Blastoise", "stage": 1, "level": 30}
+      {"name": "Abra / Kadabra / Alakazam", "stage": 3, "level": 50},
+      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 2, "level": 4},
+      {"name": "Charmander / Charmeleon / Charizard", "stage": 3, "level": 11},
+      {"name": "Gastly / Haunter / Gengar", "stage": 3, "level": 50},
+      {"name": "Geodude / Graveler / Golem", "stage": 3, "level": 11},
+      {"name": "Machop / Machoke / Machamp", "stage": 1, "level": 16},
+      {"name": "Pikachu / Raichu", "stage": 2, "level": 50},
+      {"name": "Squirtle / Wartortle / Blastoise", "stage": 3, "level": 7}
     ]
   },
   {
     "trainer": "Eevee",
     "color": "#43a047",
     "pokemon": [
-      {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 10},
-      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 10},
-      {"name": "Charmander / Charmeleon / Charizard", "stage": 1, "level": 10},
-      {"name": "Gastly / Haunter / Gengar", "stage": 1, "level": 0},
-      {"name": "Geodude / Graveler / Golem", "stage": 1, "level": 0},
-      {"name": "Machop / Machoke / Machamp", "stage": 1, "level": 0},
-      {"name": "Pikachu / Raichu", "stage": 1, "level": 0},
-      {"name": "Squirtle / Wartortle / Blastoise", "stage": 1, "level": 0}
+      {"name": "Abra / Kadabra / Alakazam", "stage": 3, "level": 28},
+      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 22},
+      {"name": "Charmander / Charmeleon / Charizard", "stage": 1, "level": 15},
+      {"name": "Gastly / Haunter / Gengar", "stage": 3, "level": 50},
+      {"name": "Geodude / Graveler / Golem", "stage": 3, "level": 50},
+      {"name": "Machop / Machoke / Machamp", "stage": 1, "level": 9},
+      {"name": "Pikachu / Raichu", "stage": 2, "level": 50},
+      {"name": "Squirtle / Wartortle / Blastoise", "stage": 2, "level": 28}
     ]
   },
   {
     "trainer": "Squirtle",
     "color": "#1e88e5",
     "pokemon": [
-      {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 10},
-      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 0},
-      {"name": "Charmander / Charmeleon / Charizard", "stage": 1, "level": 0},
-      {"name": "Gastly / Haunter / Gengar", "stage": 1, "level": 0},
-      {"name": "Geodude / Graveler / Golem", "stage": 1, "level": 0},
-      {"name": "Machop / Machoke / Machamp", "stage": 1, "level": 0},
-      {"name": "Pikachu / Raichu", "stage": 1, "level": 0},
-      {"name": "Squirtle / Wartortle / Blastoise", "stage": 1, "level": 0}
+      {"name": "Abra / Kadabra / Alakazam", "stage": 3, "level": 50},
+      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 8},
+      {"name": "Charmander / Charmeleon / Charizard", "stage": 3, "level": 15},
+      {"name": "Gastly / Haunter / Gengar", "stage": 3, "level": 50},
+      {"name": "Geodude / Graveler / Golem", "stage": 3, "level": 50},
+      {"name": "Machop / Machoke / Machamp", "stage": 1, "level": 35},
+      {"name": "Pikachu / Raichu", "stage": 2, "level": 50},
+      {"name": "Squirtle / Wartortle / Blastoise", "stage": 1, "level": 7}
     ]
   },
   {
     "trainer": "Psyduck",
     "color": "#ffd600",
     "pokemon": [
-      {"name": "Abra / Kadabra / Alakazam", "stage": 1, "level": 10},
-      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 1, "level": 0},
-      {"name": "Charmander / Charmeleon / Charizard", "stage": 1, "level": 0},
-      {"name": "Gastly / Haunter / Gengar", "stage": 1, "level": 0},
-      {"name": "Geodude / Graveler / Golem", "stage": 1, "level": 0},
-      {"name": "Machop / Machoke / Machamp", "stage": 1, "level": 0},
-      {"name": "Pikachu / Raichu", "stage": 1, "level": 0},
-      {"name": "Squirtle / Wartortle / Blastoise", "stage": 1, "level": 0}
+      {"name": "Abra / Kadabra / Alakazam", "stage": 3, "level": 50},
+      {"name": "Bulbasaur / Ivysaur / Venusaur", "stage": 3, "level": 6},
+      {"name": "Charmander / Charmeleon / Charizard", "stage": 3, "level": 21},
+      {"name": "Gastly / Haunter / Gengar", "stage": 3, "level": 50},
+      {"name": "Geodude / Graveler / Golem", "stage": 3, "level": 50},
+      {"name": "Machop / Machoke / Machamp", "stage": 1, "level": 1},
+      {"name": "Pikachu / Raichu", "stage": 2, "level": 50},
+      {"name": "Squirtle / Wartortle / Blastoise", "stage": 3, "level": 13}
     ]
   }
 ]
